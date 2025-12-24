@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AI Phishing Detector</title>
+    <style>
+      body { font-family: Arial; background:#f4f4f4; display:flex; flex-direction:column; align-items:center; padding:50px; }
+      h2 { color:#333; }
+      input { padding:10px; width:400px; border:1px solid #ccc; border-radius:5px; }
+      button { padding:10px 20px; margin-left:10px; border:none; background:#007BFF; color:white; border-radius:5px; cursor:pointer; }
+      button:hover { background:#0056b3; }
+      #result { margin-top:20px; font-weight:bold; font-size:18px; }
+    </style>
+  </head>
+  <body>
+    <h2>🔍 AI Phishing Detector</h2>
+    <div>
+      <input id="urlInput" placeholder="Enter a URL..." />
+      <button id="checkBtn">Check</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+      document.getElementById('checkBtn').addEventListener('click', async () => {
+        const url = document.getElementById('urlInput').value.trim();
+        const resultDiv = document.getElementById('result');
+
+        if (!url) {
+          resultDiv.innerText = '⚠️ Please enter a URL';
+          resultDiv.style.color = 'red';
+          return;
+        }
+
+        resultDiv.innerText = 'Checking...';
+        resultDiv.style.color = 'black';
+
+        try {
+          const res = await fetch('/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ url })
+          });
+
+          const data = await res.json();
+          const prob = data.probability ? ` (confidence ${(data.probability*100).toFixed(1)}%)` : '';
+
+          if (data.prediction === 1) {
+            resultDiv.innerText = '⚠️ Phishing Detected' + prob;
+            resultDiv.style.color = 'red';
+          } else {
+            resultDiv.innerText = '✅ Likely Safe' + prob;
+            resultDiv.style.color = 'green';
+          }
+        } catch (err) {
+          resultDiv.innerText = 'Error: Could not connect to server.';
+          resultDiv.style.color = 'gray';
+        }
+      });
+    </script>
+  </body>
+</html>
